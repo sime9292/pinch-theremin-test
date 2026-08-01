@@ -584,11 +584,16 @@ function processHand(rawHand) {
   const index = hand[8];
   const wrist = hand[0];
   const middle = hand[9];
-  const palm = Math.max(0.025, dist(wrist, middle));
-  const ratio = dist(thumb, index) / palm;
+  // Pinch gate uses raw landmarks: opening the fingers must never be delayed by smoothing.
+  const rawThumb = rawHand[4];
+  const rawIndex = rawHand[8];
+  const rawWrist = rawHand[0];
+  const rawMiddle = rawHand[9];
+  const rawPalm = Math.max(0.025, dist(rawWrist, rawMiddle));
+  const ratio = dist(rawThumb, rawIndex) / rawPalm;
   const sensitivity = Number($("pinchSensitivity").value) / 100;
-  const closeThreshold = 0.39 * sensitivity;
-  const openThreshold = 0.56 * sensitivity;
+  const closeThreshold = 0.38 * sensitivity;
+  const openThreshold = 0.50 * sensitivity;
 
   const rawY = (thumb.y + index.y) / 2;
   state.yFiltered = state.yFiltered === null ? rawY : state.yFiltered + (rawY - state.yFiltered) * 0.48;
@@ -817,6 +822,14 @@ document.addEventListener("visibilitychange", () => {
     state.pinch = false;
   }
 });
+// Safety watchdog: no fresh hand result means no sustained note.
+setInterval(() => {
+  if (state.started && state.pinch && performance.now() - state.lastSeenAt > 180) {
+    setPinch(false, 0);
+    trackingBadge.textContent = "SUONO FERMATO • RIPOSIZIONA LA MANO";
+    trackingBadge.classList.remove("seen");
+  }
+}, 80);
 
 buildPiano();
 renderNoteGuide();
