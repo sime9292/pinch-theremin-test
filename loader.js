@@ -1,6 +1,6 @@
 (async()=>{
   try{
-    const files=["app-part-1.js","app-part-2.js","app-part-3.js","app-part-4.js","app-part-5.js"];
+    const files=["app-part-1.js","app-part-2.js","app-part-3.js","app-part-4.js","app-part-5.js","app-part-6.js"];
     const parts=await Promise.all(files.map(async file=>{
       const response=await fetch(file,{cache:"no-store"});
       if(!response.ok)throw new Error(`${file}: ${response.status}`);
