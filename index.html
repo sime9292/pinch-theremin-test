@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#05070d">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Hand Melody Clean</title>
+<title>Hand Melody V2</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -26,11 +26,11 @@
   <div class="start-screen" id="startScreen">
     <div class="start-card">
       <h1>Hand <em>Melody</em></h1>
-      <p>Versione pulita: note sempre intonate, pinch per suonare e rotazione del polso per il bend.</p>
+      <p>Note esatte, punti visibili su pollice-indice-medio, bend tramite rotazione e nuovo lead melodico.</p>
       <div class="instructions">
         <div class="instruction"><b>↕</b><span>Sposta la mano in alto o in basso: ogni fascia corrisponde sempre a una nota esatta.</span></div>
         <div class="instruction"><b>🤏</b><span>Unisci pollice e indice per iniziare; aprili per fermare immediatamente il suono.</span></div>
-        <div class="instruction"><b>↻</b><span>Tenendo il pinch, ruota la mano a destra per un bend fino a un tono.</span></div>
+        <div class="instruction"><b>↻</b><span>Tenendo il pinch, ruota o inclina la mano verso destra per un bend fino a un tono.</span></div>
         <div class="instruction"><b>🎻</b><span>Tocca gli accordi sulla sinistra dello schermo per accompagnare.</span></div>
       </div>
       <button class="start-main" id="startBtn">Avvia fotocamera e audio</button>
@@ -45,7 +45,7 @@
       <div class="field"><label for="scaleSelect">Scala melodia</label><select id="scaleSelect"><option value="majorPenta">Do maggiore pentatonica</option><option value="minorPenta">La minore pentatonica</option><option value="major">Do maggiore</option><option value="dorian">Re dorica</option><option value="blues">La blues</option></select></div>
       <div class="field"><label for="octaveSelect">Registro</label><select id="octaveSelect"><option value="48">Grave (C3–C5)</option><option value="60" selected>Medio (C4–C6)</option><option value="72">Acuto (C5–C7)</option></select></div>
       <div class="field"><label>Sensibilità pinch</label><div class="range-row"><input id="pinchSensitivity" type="range" min="70" max="135" value="100"><output id="pinchOut">100%</output></div></div>
-      <div class="field"><label>Volume melodia</label><div class="range-row"><input id="melodyVolume" type="range" min="0" max="100" value="55"><output id="melodyOut">55%</output></div></div>
+      <div class="field"><label>Volume melodia</label><div class="range-row"><input id="melodyVolume" type="range" min="0" max="100" value="52"><output id="melodyOut">52%</output></div></div>
       <div class="field"><label>Volume accordi</label><div class="range-row"><input id="chordVolume" type="range" min="0" max="100" value="58"><output id="chordOut">58%</output></div></div>
       <div class="toggle"><label for="mirrorToggle">Video specchiato</label><input id="mirrorToggle" type="checkbox" checked></div>
       <div class="toggle"><label for="handInvertToggle">Inverti riconoscimento destra/sinistra</label><input id="handInvertToggle" type="checkbox"></div>
@@ -64,6 +64,6 @@
     </div>
   </section>
 </div>
-<script type="module" src="app-clean.js"></script>
+<script type="module" src="loader-v2.js"></script>
 </body>
 </html>
