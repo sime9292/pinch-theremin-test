@@ -3,176 +3,66 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<meta name="theme-color" content="#050816">
-<title>Pinch Theremin Test</title>
-<style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050816;color:#fff;font-family:system-ui,-apple-system,Segoe UI,sans-serif}#app{position:fixed;inset:0;background:radial-gradient(circle at 50% 25%,#20375d,#050816 72%)}video,canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}video{transform:scaleX(-1);opacity:.8}canvas{z-index:2;touch-action:none}.shade{position:absolute;inset:0;z-index:3;pointer-events:none;background:linear-gradient(#0009,transparent 22%,transparent 67%,#000c)}.hud{position:absolute;inset:0;z-index:4;display:flex;flex-direction:column;justify-content:space-between;padding:calc(env(safe-area-inset-top) + 8px) 8px calc(env(safe-area-inset-bottom) + 8px);pointer-events:none}.row{display:flex;gap:6px;flex-wrap:wrap}.pill,.panel{background:#07101fd9;border:1px solid #ffffff2b;backdrop-filter:blur(9px);box-shadow:0 12px 34px #0006}.pill{padding:7px 10px;border-radius:999px;font-weight:800;font-size:12px}.pill.big{font-size:19px;color:#74e8ff}.pill.chord{color:#ffd86f}.pill.chord.on{color:#fff2a6;box-shadow:0 0 24px #ffd86f55}.pill.on{color:#8dffb6;box-shadow:0 0 24px #8dffb644}.bottom{display:flex;justify-content:center}.panel{pointer-events:auto;width:min(96vw,720px);border-radius:18px;padding:10px}.status{text-align:center;font-size:13px;font-weight:700;margin-bottom:8px}.controls{display:flex;justify-content:center;gap:7px;flex-wrap:wrap}button,select{border:1px solid #ffffff2c;border-radius:12px;padding:10px 12px;background:#17233a;color:#fff;font-weight:750}button.primary{background:#176dff}button.good{background:#087a4d}.help{text-align:center;color:#9fb4c7;font-size:10px;margin-top:6px}.start{position:absolute;inset:0;z-index:8;display:grid;place-items:center;padding:18px;background:radial-gradient(circle at 50% 25%,#213b65,#050816 72%)}.card{width:min(94vw,650px);padding:22px;border-radius:24px;background:#07101ff5;border:1px solid #385173;box-shadow:0 28px 80px #0008}.card h1{margin:0;font-size:clamp(30px,9vw,52px);line-height:1}.card p{color:#cbd7e6;line-height:1.45}.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0}.grid div{background:#101b30;border:1px solid #2d405e;border-radius:14px;padding:10px;font-size:12px;font-weight:700}.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.actions button{padding:14px}.hidden{display:none!important}.meter{position:absolute;right:10px;top:20%;height:48%;width:13px;z-index:5;border-radius:999px;overflow:hidden;background:#030812aa;border:1px solid #ffffff33}.meter div{position:absolute;bottom:0;left:0;right:0;height:55%;background:linear-gradient(to top,#55aaff,#8dffb6,#ffd76f)}@media(max-width:520px){.grid,.actions{grid-template-columns:1fr}.panel{padding:8px}button,select{padding:9px}}
-</style>
+<meta name="theme-color" content="#05070d">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Hand Melody</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div id="app">
-<video id="video" autoplay playsinline muted></video><canvas id="canvas"></canvas><div class="shade"></div><div class="meter"><div id="meter"></div></div>
-<div class="hud"><div class="row"><div class="pill" id="mode">ATTESA</div><div class="pill" id="gate">DITA SEPARATE</div><div class="pill big" id="note">—</div><div class="pill chord" id="chord">ACC —</div><div class="pill" id="vol">VOL 55%</div></div><div class="bottom"><div class="panel"><div class="status" id="status">Avvia la fotocamera.</div><div class="controls"><select id="key">
-<option value="0">Do</option><option value="1">Do♯</option><option value="2">Re</option>
-<option value="3">Mi♭</option><option value="4">Mi</option><option value="5">Fa</option>
-<option value="6">Fa♯</option><option value="7">Sol</option><option value="8">La♭</option>
-<option value="9">La</option><option value="10">Si♭</option><option value="11">Si</option>
-</select><select id="scale"><option value="penta">Pentatonica</option><option value="minor">Pentatonica minore</option><option value="major">Maggiore</option><option value="blues">Blues</option></select><button id="calibrate">Calibra volume</button><button id="touch">Modalità touch</button><button id="stop">Stop</button></div><div class="help">Mano destra: melodia · pollice sinistro: appoggia e scorri nel ventaglio per cambiare accordo senza sollevare</div></div></div></div>
-<div class="start" id="start"><div class="card"><h1>Pinch Theremin</h1><p>Porta il punto medio tra pollice e indice sopra una fascia. Quando le dita si toccano, quella nota suona.</p><div class="grid"><div>🤏 Il cursore è il punto medio esatto tra le due dita.</div><div>↕ Sposta il pizzico unito per cambiare nota.</div><div>↻ Ruota verso destra per aumentare il volume.</div><div>↺ Ruota verso sinistra per diminuirlo.</div><div>👍 Appoggia il pollice sinistro: parte subito l’accordo I.</div><div>⚡ Scorri pochi millimetri nel ventaglio per cambiare accordo all’istante.</div></div><div class="actions"><button class="primary" id="camera">Avvia fotocamera</button><button class="good" id="touchStart">Prova col dito</button></div><p id="msg"></p></div></div>
-</div>
-<script type="module">
-import{HandLandmarker,FilesetResolver}from"https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18";
-const $=s=>document.getElementById(s),video=$("video"),canvas=$("canvas"),ctx=canvas.getContext("2d"),start=$("start"),msg=$("msg"),status=$("status"),modeEl=$("mode"),gateEl=$("gate"),noteEl=$("note"),chordEl=$("chord"),volEl=$("vol"),meter=$("meter"),scaleEl=$("scale"),keyEl=$("key");
-let landmarker,stream,mode="idle",lastVideo=-1,lastDetect=0,pts=null,smooth=null,pinch=false,cursor={x:.5,y:.5},active=-1,candidate=-1,frames=0,neutral=null,roll=0,targetVol=.55,currentVol=.55,audio=null,voice=null,pointer=false,chordVoice=null,previousChordNotes=null,currentChord=-1,chordPad={active:false,id:null,ax:0,ay:0,x:0,y:0,index:0};
-const names=["Do","Do♯","Re","Re♯","Mi","Fa","Fa♯","Sol","Sol♯","La","La♯","Si"],scales={penta:[0,2,4,7,9],minor:[0,3,5,7,10],major:[0,2,4,5,7,9,11],blues:[0,3,5,6,7,10]},colors=["#4b74ff","#55a8ff","#4bd8ee","#58e7ba","#8aee82","#cbe96d","#ffd36d","#ff9e70","#ff718e","#d66cf0","#8b6cff"];
-const majorDegrees=[0,2,4,5,7,9,11],majorQual=["M","m","m","M","M","m","dim"],majorRoman=["I","ii","iii","IV","V","vi","vii°"];
-const minorDegrees=[0,2,3,5,7,8,10],minorQual=["m","dim","M","m","M","M","M"],minorRoman=["i","ii°","III","iv","V","VI","VII"];
-const fanIndexes=[1,3,4,5,2,6],fanAngles=[-70,-42,-14,14,42,70];
-const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),lerp=(a,b,t)=>a+(b-a)*t,dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y),freq=m=>440*Math.pow(2,(m-69)/12);
-function notes(){let a=[],root=Number(keyEl.value);for(let o=0;o<2;o++)for(const i of scales[scaleEl.value])a.push(60+root+i+12*o);a.push(84+root);return a}let midi=notes();
-function resize(){let d=Math.min(2,devicePixelRatio||1);canvas.width=innerWidth*d;canvas.height=innerHeight*d;ctx.setTransform(d,0,0,d,0,0)}addEventListener("resize",resize);resize();
-function initAudio(){if(audio)return;let A=new(window.AudioContext||window.webkitAudioContext),master=A.createGain(),comp=A.createDynamicsCompressor(),delay=A.createDelay(.7),fb=A.createGain(),wet=A.createGain();master.gain.value=.55;comp.threshold.value=-18;comp.ratio.value=4;delay.delayTime.value=.2;fb.gain.value=.2;wet.gain.value=.16;let chordBus=A.createGain();chordBus.gain.value=.38;master.connect(comp);master.connect(delay);chordBus.connect(master);delay.connect(fb);fb.connect(delay);delay.connect(wet);wet.connect(comp);comp.connect(A.destination);audio={A,master,chordBus}}
-function startVoice(f){initAudio();audio.A.resume();if(voice){voice.o.frequency.setTargetAtTime(f,audio.A.currentTime,.04);return}let A=audio.A,o=A.createOscillator(),g=A.createGain(),filter=A.createBiquadFilter();o.type="sawtooth";o.frequency.value=f;filter.type="lowpass";filter.frequency.value=1800;filter.Q.value=5;g.gain.setValueAtTime(.0001,A.currentTime);g.gain.exponentialRampToValueAtTime(.25,A.currentTime+.025);o.connect(filter);filter.connect(g);g.connect(audio.master);o.start();voice={o,g,filter}}
-function stopVoice(){if(!voice)return;let t=audio.A.currentTime,v=voice;v.g.gain.setTargetAtTime(.0001,t,.045);v.o.stop(t+.2);voice=null}
-function harmony(){
-  let minor=scaleEl.value==="minor"||scaleEl.value==="blues";
-  return minor?{degrees:minorDegrees,qual:minorQual,roman:minorRoman}:{degrees:majorDegrees,qual:majorQual,roman:majorRoman};
-}
-function chordInfo(i){
-  let h=harmony(),pc=(Number(keyEl.value)+h.degrees[i])%12,q=h.qual[i];
-  return{index:i,pc,q,roman:h.roman[i],label:names[pc]+(q==="m"?"m":q==="dim"?"°":"")};
-}
-function bestVoicing(info){
-  let third=info.q==="M"?4:3,fifth=info.q==="dim"?6:7,root=48+info.pc;
-  while(root>57)root-=12;while(root<43)root+=12;
-  let base=[root,root+third,root+fifth],candidates=[];
-  for(let inv=0;inv<3;inv++){
-    let v=base.slice();
-    for(let j=0;j<inv;j++)v.push(v.shift()+12);
-    for(const shift of[-12,0,12])candidates.push(v.map(n=>n+shift));
-  }
-  let best=candidates[0],bestScore=1e9;
-  for(const c of candidates){
-    let score=0;
-    if(previousChordNotes)score=c.reduce((s,n,j)=>s+Math.abs(n-previousChordNotes[j]),0);
-    else score=Math.abs(c.reduce((a,b)=>a+b,0)/3-53)*1.7;
-    for(const n of c){if(n<40)score+=(40-n)*3;if(n>67)score+=(n-67)*3}
-    if(score<bestScore){bestScore=score;best=c}
-  }
-  return best;
-}
-function releaseChord(){
-  if(!chordVoice)return;
-  let t=audio.A.currentTime,v=chordVoice;
-  v.g.gain.cancelScheduledValues(t);
-  v.g.gain.setTargetAtTime(.0001,t,.025);
-  v.oscs.forEach(o=>{try{o.stop(t+.16)}catch{}});
-  chordVoice=null;
-}
-function playChord(i,force=false){
-  initAudio();audio.A.resume();
-  if(i===currentChord&&!force)return;
-  releaseChord();
-  currentChord=i;
-  let info=chordInfo(i),voicing=bestVoicing(info),A=audio.A;
-  previousChordNotes=voicing.slice();
-  let g=A.createGain(),filter=A.createBiquadFilter(),oscs=[];
-  filter.type="lowpass";filter.frequency.value=1250;filter.Q.value=1.4;
-  g.gain.setValueAtTime(.0001,A.currentTime);
-  g.gain.exponentialRampToValueAtTime(.24,A.currentTime+.018);
-  filter.connect(g);g.connect(audio.chordBus);
-  voicing.forEach((m,j)=>{
-    let o=A.createOscillator();o.type=j===0?"triangle":"sine";o.frequency.value=freq(m);o.detune.value=[0,-4,4][j];
-    o.connect(filter);o.start();oscs.push(o);
-  });
-  chordVoice={g,filter,oscs};
-  chordEl.textContent=info.roman+"  "+info.label;
-  chordEl.classList.add("on");
-  if(navigator.vibrate)navigator.vibrate(10);
-}
-function stopChord(){
-  releaseChord();currentChord=-1;chordEl.textContent="ACC —";chordEl.classList.remove("on");
-}
-function startChordPad(e){
-  chordPad={active:true,id:e.pointerId,ax:e.clientX,ay:e.clientY,x:e.clientX,y:e.clientY,index:0};
-  playChord(0,true);
-}
-function chordIndexAt(x,y){
-  let dx=x-chordPad.ax,dy=y-chordPad.ay,d=Math.hypot(dx,dy);
-  if(d<27||dx<8)return 0;
-  let angle=Math.atan2(dy,dx)*180/Math.PI,best=0,bestD=999;
-  for(let j=0;j<fanAngles.length;j++){
-    let delta=Math.abs(angle-fanAngles[j]);
-    if(delta<bestD){bestD=delta;best=j}
-  }
-  return fanIndexes[best];
-}
-function moveChordPad(e){
-  chordPad.x=e.clientX;chordPad.y=e.clientY;
-  let next=chordIndexAt(e.clientX,e.clientY);
-  if(next!==chordPad.index){chordPad.index=next;playChord(next)}
-}
-function endChordPad(){
-  chordPad.active=false;chordPad.id=null;stopChord();
-}
-function showNote(){if(active<0)return;let m=midi[active];noteEl.textContent=names[m%12]+(Math.floor(m/12)-1);startVoice(freq(m))}
-function gate(on){if(on===pinch)return;pinch=on;gateEl.classList.toggle("on",on);gateEl.textContent=on?"SYNTH ON":"DITA SEPARATE";if(on)showNote();else stopVoice()}
-function pick(y,instant=false){let visual=clamp(Math.floor(y*midi.length),0,midi.length-1),idx=midi.length-1-visual;if(instant){active=idx;candidate=idx;frames=2;return}if(idx===candidate)frames++;else{candidate=idx;frames=1}if(frames>=2&&idx!==active){active=idx;if(pinch)showNote()}}
-async function model(){if(landmarker)return;msg.textContent="Caricamento riconoscimento mano…";let v=await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/wasm");landmarker=await HandLandmarker.createFromOptions(v,{baseOptions:{modelAssetPath:"https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",delegate:"GPU"},runningMode:"VIDEO",numHands:1,minHandDetectionConfidence:.6,minHandPresenceConfidence:.55,minTrackingConfidence:.55})}
-async function startCamera(){initAudio();audio.A.resume();try{await model();stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:"user",width:{ideal:960},height:{ideal:720}}});video.srcObject=stream;await video.play();mode="camera";modeEl.textContent="CAMERA";start.classList.add("hidden");status.textContent="Mano destra per la melodia. Appoggia il pollice sinistro nella metà sinistra per gli accordi."}catch(e){msg.innerHTML="Errore fotocamera: <b>"+e.name+"</b>. Controlla il permesso di Chrome e ricarica."}}
-function startTouch(){initAudio();audio.A.resume();mode="touch";modeEl.textContent="TOUCH";video.style.opacity=0;start.classList.add("hidden");status.textContent="A destra: melodia col dito. A sinistra: accordi rapidi col pollice."}
-function process(lm){let a=.42;if(!smooth)smooth=lm.map(p=>({...p}));else for(let i=0;i<lm.length;i++){smooth[i].x=lerp(smooth[i].x,lm[i].x,a);smooth[i].y=lerp(smooth[i].y,lm[i].y,a);smooth[i].z=lerp(smooth[i].z,lm[i].z,a)}pts=smooth;let P=i=>({x:1-pts[i].x,y:pts[i].y}),thumb=P(4),index=P(8),wrist=P(0),middle=P(9),im=P(5),pm=P(17);cursor.x=(thumb.x+index.x)/2;cursor.y=(thumb.y+index.y)/2;let ratio=dist(thumb,index)/Math.max(.025,dist(im,pm)),touching=pinch?ratio<.5:ratio<.36;if(touching){if(!pinch){pick(cursor.y,true);gate(true)}else pick(cursor.y)}else if(pinch)gate(false);roll=Math.atan2(middle.x-wrist.x,-(middle.y-wrist.y))*180/Math.PI;if(neutral===null)neutral=roll;targetVol=clamp(.55+clamp(roll-neutral,-42,42)/42*.45,.08,1)}
-function detect(t){if(mode==="camera"&&landmarker&&video.readyState>=2&&t-lastDetect>30){lastDetect=t;if(video.currentTime!==lastVideo){lastVideo=video.currentTime;let r=landmarker.detectForVideo(video,t);if(r.landmarks?.length){process(r.landmarks[0]);status.textContent=pinch?"Sposta il punto verde sulle fasce.":"Unisci pollice e indice."}else{pts=smooth=null;gate(false);status.textContent="Nessuna mano rilevata."}}}requestAnimationFrame(detect)}requestAnimationFrame(detect);
-const con=[[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
-function drawBands(){let h=innerHeight/midi.length;for(let v=0;v<midi.length;v++){let idx=midi.length-1-v,y=v*h,on=idx===active;ctx.fillStyle=colors[v%colors.length]+(on?"88":"28");ctx.fillRect(0,y,innerWidth,h);ctx.strokeStyle="#ffffff22";ctx.strokeRect(0,y,innerWidth,h);let m=midi[idx];ctx.fillStyle=on?"#fff":"#ffffff99";ctx.font=(on?"800 ":"700 ")+Math.max(11,Math.min(18,h*.36))+"px system-ui";ctx.textBaseline="middle";ctx.fillText(names[m%12]+(Math.floor(m/12)-1),12,y+h/2)}}
+  <video id="camera" autoplay playsinline muted></video>
+  <canvas id="overlay"></canvas>
+  <div class="vignette"></div>
 
-function drawChordPad(){
-  if(start&&!start.classList.contains("hidden"))return;
-  if(!chordPad.active){
-    ctx.save();ctx.fillStyle="#07101f88";ctx.fillRect(0,innerHeight*.30,42,innerHeight*.40);
-    ctx.translate(21,innerHeight*.5);ctx.rotate(-Math.PI/2);ctx.textAlign="center";ctx.textBaseline="middle";
-    ctx.fillStyle="#ffd86f";ctx.font="800 10px system-ui";ctx.fillText("POL LICE ACCORDI",0,0);ctx.restore();return;
-  }
-  let ax=chordPad.ax,ay=chordPad.ay,R=Math.min(82,innerWidth*.22),all=[0,...fanIndexes];
-  ctx.save();
-  ctx.lineWidth=2;ctx.strokeStyle="#ffd86f66";
-  for(let j=0;j<fanAngles.length;j++){
-    let a=fanAngles[j]*Math.PI/180,x=ax+Math.cos(a)*R,y=ay+Math.sin(a)*R;
-    ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(x,y);ctx.stroke();
-  }
-  for(let k=0;k<all.length;k++){
-    let idx=all[k],x=ax,y=ay;
-    if(k>0){let a=fanAngles[k-1]*Math.PI/180;x=ax+Math.cos(a)*R;y=ay+Math.sin(a)*R}
-    let selected=idx===chordPad.index,info=chordInfo(idx),radius=selected?25:21;
-    ctx.shadowBlur=selected?20:0;ctx.shadowColor="#ffd86f";
-    ctx.fillStyle=selected?"#ffd86f":"#0b1729ee";ctx.strokeStyle=selected?"#fff7c7":"#ffd86f99";ctx.lineWidth=2;
-    ctx.beginPath();ctx.arc(x,y,radius,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.shadowBlur=0;
-    ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillStyle=selected?"#07101f":"#fff";
-    ctx.font="900 11px system-ui";ctx.fillText(info.roman,x,y-5);
-    ctx.font="750 9px system-ui";ctx.fillText(info.label,x,y+8);
-  }
-  ctx.fillStyle="#fff";ctx.font="700 10px system-ui";ctx.textAlign="left";
-  ctx.fillText("Tieni premuto e scorri",Math.min(ax+8,innerWidth-145),Math.max(18,ay-104));
-  ctx.restore();
-}
-function drawHand(){if(!pts)return;let P=i=>({x:(1-pts[i].x)*innerWidth,y:pts[i].y*innerHeight});ctx.lineWidth=2;ctx.strokeStyle="#c8f4ff99";for(const[a,b]of con){let A=P(a),B=P(b);ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(B.x,B.y);ctx.stroke()}let th=P(4),ind=P(8),mx=(th.x+ind.x)/2,my=(th.y+ind.y)/2;ctx.lineWidth=3;ctx.strokeStyle=pinch?"#8dffb6":"#ffffff88";ctx.beginPath();ctx.moveTo(th.x,th.y);ctx.lineTo(ind.x,ind.y);ctx.stroke();ctx.shadowBlur=pinch?20:10;ctx.shadowColor=pinch?"#8dffb6":"#74e8ff";ctx.fillStyle=pinch?"#8dffb6":"#74e8ff";ctx.beginPath();ctx.arc(mx,my,pinch?10:7,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0}
-function draw(){ctx.clearRect(0,0,innerWidth,innerHeight);drawBands();drawChordPad();drawHand();currentVol=lerp(currentVol,targetVol,.12);meter.style.height=Math.round(currentVol*100)+"%";volEl.textContent="VOL "+Math.round(currentVol*100)+"%";if(audio)audio.master.gain.setTargetAtTime(.12+currentVol*.78,audio.A.currentTime,.03);requestAnimationFrame(draw)}requestAnimationFrame(draw);
-function touchMove(e){let r=canvas.getBoundingClientRect();cursor.x=clamp((e.clientX-r.left)/r.width,0,1);cursor.y=clamp((e.clientY-r.top)/r.height,0,1);targetVol=clamp(cursor.x,.08,1);pick(cursor.y,true);if(pointer)showNote()}
-canvas.onpointerdown=e=>{
-  if(mode==="idle")return;
-  canvas.setPointerCapture(e.pointerId);
-  if(e.clientX<innerWidth*.48){startChordPad(e);return}
-  if(mode==="touch"){pointer=true;touchMove(e);gate(true)}
-};
-canvas.onpointermove=e=>{
-  if(chordPad.active&&e.pointerId===chordPad.id){moveChordPad(e);return}
-  if(mode==="touch"&&pointer)touchMove(e)
-};
-canvas.onpointerup=canvas.onpointercancel=e=>{
-  if(chordPad.active&&e.pointerId===chordPad.id){endChordPad();return}
-  if(mode==="touch"){pointer=false;gate(false)}
-};
-$("camera").onclick=startCamera;$("touchStart").onclick=startTouch;$("touch").onclick=startTouch;$("calibrate").onclick=()=>{if(mode==="camera"&&pts){neutral=roll;status.textContent="Volume calibrato: questa inclinazione vale 55%."}};$("stop").onclick=()=>{gate(false);stopChord();stream?.getTracks().forEach(t=>t.stop());mode="idle";modeEl.textContent="STOP"};function refreshMusic(){midi=notes();active=-1;gate(false);if(chordPad.active)playChord(chordPad.index,true)}scaleEl.onchange=refreshMusic;keyEl.onchange=refreshMusic;
-if(!window.isSecureContext)msg.innerHTML="Questa pagina non è in HTTPS: la fotocamera sarà bloccata.";
-</script>
-</body></html>
+  <div class="topbar">
+    <div class="note-display" id="noteDisplay"><span class="small">Melodia</span><strong id="noteName">—</strong></div>
+  </div>
+  <button class="icon-button" id="settingsBtn" aria-label="Impostazioni">⚙</button>
+  <div class="chord-rail" id="chordRail"></div>
+  <div class="status-pill" id="status">Tocca Avvia per attivare fotocamera e audio</div>
+  <div class="toast" id="toast"></div>
+
+  <div class="start-screen" id="startScreen">
+    <div class="start-card">
+      <h1>Hand <em>Melody</em></h1>
+      <p>Suona una melodia con la mano destra e accompagna con gli accordi sulla sinistra.</p>
+      <div class="instructions">
+        <div class="instruction"><b>🤏</b><span>Unisci pollice e indice della mano destra per far partire la nota.</span></div>
+        <div class="instruction"><b>↕</b><span>Sposta la mano in alto o in basso per scegliere l’altezza.</span></div>
+        <div class="instruction"><b>🎻</b><span>Tocca gli accordi a sinistra: il pad di archi resta attivo fino al cambio.</span></div>
+      </div>
+      <button class="start-main" id="startBtn">Avvia fotocamera e audio</button>
+      <div class="start-error" id="startError"></div>
+    </div>
+  </div>
+
+  <div class="sheet-backdrop hidden" id="sheetBackdrop"></div>
+  <section class="sheet hidden" id="settingsSheet" aria-modal="true">
+    <div class="sheet-head"><div><h2>Impostazioni</h2><p class="sub">Regola scala, sensibilità e suono.</p></div><button class="close" data-close>×</button></div>
+    <div class="settings-grid">
+      <div class="field"><label for="scaleSelect">Scala melodia</label><select id="scaleSelect"><option value="majorPenta">Do maggiore pentatonica</option><option value="minorPenta">La minore pentatonica</option><option value="major">Do maggiore</option><option value="dorian">Re dorica</option><option value="blues">La blues</option></select></div>
+      <div class="field"><label for="octaveSelect">Registro</label><select id="octaveSelect"><option value="48">Grave (C3–C5)</option><option value="60" selected>Medio (C4–C6)</option><option value="72">Acuto (C5–C7)</option></select></div>
+      <div class="field"><label>Sensibilità pinch</label><div class="range-row"><input id="pinchSensitivity" type="range" min="70" max="135" value="100"><output id="pinchOut">100%</output></div></div>
+      <div class="field"><label>Volume melodia</label><div class="range-row"><input id="melodyVolume" type="range" min="0" max="100" value="64"><output id="melodyOut">64%</output></div></div>
+      <div class="field"><label>Volume accordi</label><div class="range-row"><input id="chordVolume" type="range" min="0" max="100" value="58"><output id="chordOut">58%</output></div></div>
+      <div class="toggle"><label for="mirrorToggle">Video specchiato</label><input id="mirrorToggle" type="checkbox" checked></div>
+      <div class="toggle"><label for="handInvertToggle">Inverti riconoscimento destra/sinistra</label><input id="handInvertToggle" type="checkbox"></div>
+      <button id="stopBtn" class="danger" style="padding:12px;border-radius:14px;border:1px solid var(--line);background:#5b1e2a;font-weight:850">Ferma fotocamera e audio</button>
+    </div>
+  </section>
+
+  <section class="sheet hidden" id="chordSheet" aria-modal="true">
+    <div class="sheet-head"><div><h2 id="chordSheetTitle">Nuovo accordo</h2><p class="sub">Premi le note una alla volta. Il nome viene riconosciuto automaticamente.</p></div><button class="close" data-close>×</button></div>
+    <div class="piano-wrap"><div class="piano" id="piano"><div class="white-keys" id="whiteKeys"></div></div></div>
+    <div class="chord-readout"><div><strong id="detectedChord">—</strong><small id="selectedNotes">Nessuna nota selezionata</small></div><button id="listenChord" style="padding:10px;border-radius:13px;border:1px solid var(--line);background:#172238">Ascolta</button></div>
+    <div class="field" style="margin-top:12px"><label for="customChordName">Nome visualizzato</label><input id="customChordName" type="text" maxlength="12" placeholder="Automatico"></div>
+    <div class="action-row">
+      <button id="clearChord">Pulisci</button><button id="cancelChord">Annulla</button>
+      <button id="deleteChord" class="danger hidden">Elimina</button><button id="saveChord" class="primary">Aggiungi</button>
+    </div>
+  </section>
+</div>
+<script type="module" src="loader.js"></script>
+</body>
+</html>
