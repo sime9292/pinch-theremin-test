@@ -11,8 +11,8 @@
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#03050b;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#fff;touch-action:none}
 button,select{font:inherit;color:inherit}
 #app{position:fixed;inset:0;overflow:hidden;background:radial-gradient(circle at 50% 40%,#15243b,#04060c 72%)}
-video,canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
-video{filter:saturate(.92) contrast(1.04) brightness(.82)}
+video,canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+video{transform:scaleX(-1);filter:saturate(.92) contrast(1.04) brightness(.82)}
 canvas{z-index:2;pointer-events:none}
 .shade{position:absolute;inset:0;z-index:3;pointer-events:none;background:linear-gradient(180deg,rgba(1,3,9,.72),transparent 22%,transparent 68%,rgba(1,3,9,.84))}
 .top{position:absolute;z-index:5;top:max(10px,env(safe-area-inset-top));left:10px;right:10px;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;pointer-events:none}
@@ -96,7 +96,7 @@ function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y,(a.z||0)-(b.z||0))}
 function angle(a,b,c){const ab={x:a.x-b.x,y:a.y-b.y,z:(a.z||0)-(b.z||0)},cb={x:c.x-b.x,y:c.y-b.y,z:(c.z||0)-(b.z||0)};const dot=ab.x*cb.x+ab.y*cb.y+ab.z*cb.z;const m=Math.hypot(ab.x,ab.y,ab.z)*Math.hypot(cb.x,cb.y,cb.z);return Math.acos(clamp(dot/(m||1),-1,1))*180/Math.PI}
 function midiName(m){const n=Math.round(m);return NOTE_NAMES[((n%12)+12)%12]+(Math.floor(n/12)-1)}
 function freq(m){return 440*Math.pow(2,(m-69)/12)}
-function scaleMidi(root,octave,degree,pattern){const len=pattern.length;let octShift=Math.floor(degree/len);let idx=((degree%len)+len)%len;if(degree<0&&degree%len!==0)octShift=Math.floor(degree/len);return 12*(octave+1)+root+pattern[idx]+12*octShift}
+function scaleMidi(root,octave,degree,pattern){const len=pattern.length;const octShift=Math.floor(degree/len);const idx=((degree%len)+len)%len;return 12*(octave+1)+root+pattern[idx]+12*octShift}
 
 function resize(){const dpr=Math.min(2,devicePixelRatio||1);canvas.width=Math.round(innerWidth*dpr);canvas.height=Math.round(innerHeight*dpr);canvas.style.width=innerWidth+"px";canvas.style.height=innerHeight+"px";ctx.setTransform(dpr,0,0,dpr,0,0)}
 addEventListener("resize",resize);addEventListener("orientationchange",()=>setTimeout(resize,200));resize();
@@ -109,11 +109,11 @@ function playChord(){if(state.playing||!state.poseReady)return;state.playing=tru
 function stopChord(){if(!state.playing)return;state.playing=false;state.voices.forEach(stopVoice);state.voices=[];touchZone.classList.remove("pressed");flash.classList.remove("on");state.stableNotes.forEach((_,i)=>$("voice"+i).classList.remove("active"));updateStatus()}
 
 function updateVoiceUI(notes){notes.forEach((m,i)=>$("voice"+i).querySelector("strong").textContent=midiName(m))}
-function computeNotes(lm){const root=Number($("root").value),oct=Number($("octave").value),pattern=SCALE_PATTERNS[$("scale").value]||SCALE_PATTERNS.major;const base=[0,2,4,6];const palm=dist(lm[0],lm[9])||.2;const notes=[];let previous=-Infinity;FINGERS.forEach((f,i)=>{const pipAngle=angle(lm[f.mcp],lm[f.pip],lm[f.tip]);const openNorm=clamp((pipAngle-70)/105,0,1);const height=clamp((lm[0].y-lm[f.tip].y)/(palm*2.15),0,1);const control=.72*openNorm+.28*height;const shift=control<.36?-1:control>.69?1:0;let degree=base[i]+shift;let midi=scaleMidi(root,oct,degree,pattern);while(midi<=previous)midi+=12;notes.push(midi);previous=midi});return notes}
+function computeNotes(lm){const root=Number($("root").value),oct=Number($("octave").value),pattern=SCALE_PATTERNS[$("scale").value]||SCALE_PATTERNS.major;const base=[0,2,4,6];const palm=dist(lm[0],lm[9])||.2;const notes=[];let previous=-Infinity;FINGERS.forEach((f,i)=>{const pipAngle=angle(lm[f.mcp],lm[f.pip],lm[f.tip]);const openNorm=clamp((pipAngle-70)/105,0,1);const height=clamp((lm[0].y-lm[f.tip].y)/(palm*2.15),0,1);const control=.72*openNorm+.28*height;const shift=control<.36?-1:control>.69?1:0;const degree=base[i]+shift;let midi=scaleMidi(root,oct,degree,pattern);while(midi<=previous)midi+=12;notes.push(midi);previous=midi});return notes}
 function assessPose(lm){const palmWidth=dist(lm[5],lm[17])||.1;const thumbOpen=dist(lm[4],lm[5])>palmWidth*.48;let bent=0;for(const f of FINGERS){const a=angle(lm[f.mcp],lm[f.pip],lm[f.tip]);if(a<158)bent++}return{ready:thumbOpen&&bent>=2,bent,thumbOpen}}
 function smoothHand(lm){if(!state.smooth){state.smooth=lm.map(p=>({...p}));return state.smooth}const alpha=.42;for(let i=0;i<lm.length;i++){state.smooth[i].x+=alpha*(lm[i].x-state.smooth[i].x);state.smooth[i].y+=alpha*(lm[i].y-state.smooth[i].y);state.smooth[i].z+=alpha*((lm[i].z||0)-(state.smooth[i].z||0))}return state.smooth}
 function stabilize(notes){const key=notes.join(",");if(key===state.candidateKey)state.candidateFrames++;else{state.candidateKey=key;state.candidateFrames=1}if(state.candidateFrames>=4&&!state.playing){state.stableNotes=[...notes];updateVoiceUI(state.stableNotes)}}
-function updateStatus(){if(!state.hand){statusEl.textContent="Mostra la mano";statusEl.className="status";hint.classList.remove("hidden");return}if(state.poseReady){statusEl.textContent="Posizione riconosciuta";statusEl.className="status ready";hint.classList.add("hidden")}else{statusEl.textContent="Apri il pollice e piega le dita";statusEl.className="status";hint.classList.remove("hidden")}}
+function updateStatus(){if(state.playing){statusEl.textContent="Accordo in esecuzione";statusEl.className="status playing";hint.classList.add("hidden");return}if(!state.hand){statusEl.textContent="Mostra la mano";statusEl.className="status";hint.classList.remove("hidden");return}if(state.poseReady){statusEl.textContent="Posizione riconosciuta";statusEl.className="status ready";hint.classList.add("hidden")}else{statusEl.textContent="Apri il pollice e piega le dita";statusEl.className="status";hint.classList.remove("hidden")}}
 
 function draw(lm){ctx.clearRect(0,0,innerWidth,innerHeight);if(!lm)return;const x=p=>(1-p.x)*innerWidth,y=p=>p.y*innerHeight;ctx.lineCap="round";ctx.lineJoin="round";ctx.lineWidth=3;ctx.strokeStyle=state.poseReady?"rgba(157,255,195,.72)":"rgba(255,210,125,.62)";for(const [a,b] of CONNECTIONS){ctx.beginPath();ctx.moveTo(x(lm[a]),y(lm[a]));ctx.lineTo(x(lm[b]),y(lm[b]));ctx.stroke()}FINGERS.forEach((f,i)=>{const px=x(lm[f.tip]),py=y(lm[f.tip]);ctx.beginPath();ctx.arc(px,py,18,0,Math.PI*2);ctx.fillStyle=state.playing?"rgba(157,255,195,.92)":"rgba(5,12,24,.82)";ctx.fill();ctx.lineWidth=2;ctx.strokeStyle=i===0?"#7ee8ff":i===3?"#ffd27d":"rgba(255,255,255,.78)";ctx.stroke();ctx.font="900 11px system-ui";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillStyle="#fff";ctx.fillText(midiName(state.stableNotes[i]).replace(/[0-9-]/g,""),px,py);ctx.font="800 9px system-ui";ctx.fillStyle="rgba(255,255,255,.78)";ctx.fillText(String(i+1),px,py+28)})}
 
@@ -125,7 +125,7 @@ $("startBtn").addEventListener("click",async()=>{const error=$("error");error.te
 
 function isControl(target){return target.closest?.("#controls,#start")}
 addEventListener("pointerdown",async e=>{if(!state.started||isControl(e.target))return;e.preventDefault();await resumeAudio();if(state.poseReady)playChord();else{statusEl.textContent="Prima porta la mano nella posizione";navigator.vibrate?.([20,35,20])}},{passive:false});
-addEventListener("pointerup",e=>{if(!isControl(e.target))stopChord()});addEventListener("pointercancel",stopChord);addEventListener("blur",stopChord);document.addEventListener("visibilitychange",()=>{if(document.hidden)stopChord()});
+addEventListener("pointerup",stopChord);addEventListener("pointercancel",stopChord);addEventListener("blur",stopChord);document.addEventListener("visibilitychange",()=>{if(document.hidden)stopChord()});
 [$("root"),$("scale"),$("octave")].forEach(el=>el.addEventListener("change",()=>{if(state.hand&&!state.playing){const n=computeNotes(state.hand);state.stableNotes=n;state.candidateKey=n.join(",");state.candidateFrames=4;updateVoiceUI(n)}}));
 </script>
 </body>
